@@ -208,7 +208,7 @@ body {
 
         <h1>Welcome, Thumbi! 🥳</h1>
 
-        <button class="open-button" onclick="openBirthday()">
+        <button class="open-button" onclick="openBirthday()" aria-label="Open birthday page">
             Open chey Thumbi Kuttaaa ❤️
         </button>
 
@@ -236,39 +236,39 @@ body {
     <div class="gallery">
 
         <div class="photo">
-            <img src="screenshot1.png" alt="Memory 1" onerror="this.style.opacity=0.3; this.alt='Image not found';">
+            <img src="screenshot1.png" alt="Memory 1" loading="lazy" onerror="this.style.opacity=0.3; this.alt='Image not found';">
         </div>
 
         <div class="photo">
-            <img src="screenshot2.png" alt="Memory 2" onerror="this.style.opacity=0.3; this.alt='Image not found';">
+            <img src="screenshot2.png" alt="Memory 2" loading="lazy" onerror="this.style.opacity=0.3; this.alt='Image not found';">
         </div>
 
         <div class="photo">
-            <img src="screenshot3.png" alt="Memory 3" onerror="this.style.opacity=0.3; this.alt='Image not found';">
+            <img src="screenshot3.png" alt="Memory 3" loading="lazy" onerror="this.style.opacity=0.3; this.alt='Image not found';">
         </div>
 
         <div class="photo">
-            <img src="screenshot4.png" alt="Memory 4" onerror="this.style.opacity=0.3; this.alt='Image not found';">
+            <img src="screenshot4.png" alt="Memory 4" loading="lazy" onerror="this.style.opacity=0.3; this.alt='Image not found';">
         </div>
 
         <div class="photo">
-            <img src="screenshot5.png" alt="Memory 5" onerror="this.style.opacity=0.3; this.alt='Image not found';">
+            <img src="screenshot5.png" alt="Memory 5" loading="lazy" onerror="this.style.opacity=0.3; this.alt='Image not found';">
         </div>
 
     </div>
 
+    <!-- SONG (moved inside birthday section so it won't preload before open) -->
+    <audio id="birthdaySong" loop controls preload="none">
+        <source src="song.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
 </section>
 
 
-<!-- SONG -->
-
-<audio id="birthdaySong" loop controls preload="auto">
-    <source src="song.mp3" type="audio/mpeg">
-    Your browser does not support the audio element.
-</audio>
-
-
 <script>
+
+let fallingInterval = null;
 
 function openBirthday() {
 
@@ -281,10 +281,15 @@ function openBirthday() {
     /* Start song */
     const song = document.getElementById("birthdaySong");
 
-    song.play().catch(function(error) {
-        console.log("Audio could not start:", error);
-        // If autoplay is blocked, controls are available for manual play.
-    });
+    if (song) {
+        // Try to start; many browsers block autoplay so play() may reject.
+        song.play().catch(function(error) {
+            console.log("Audio could not start:", error);
+            // Controls allow manual play.
+        });
+    } else {
+        console.log('Audio element not found');
+    }
 
     /* Start falling emojis */
     startFalling();
@@ -313,25 +318,25 @@ function startFalling() {
         "18"
     ];
 
-    setInterval(function() {
+    // Avoid multiple intervals running
+    if (fallingInterval) return;
+
+    fallingInterval = setInterval(function() {
 
         const item = document.createElement("div");
 
         item.classList.add("falling");
 
-        item.innerHTML =
-            things[Math.floor(Math.random() * things.length)];
+        // Use textContent for safety
+        item.textContent = things[Math.floor(Math.random() * things.length)];
 
-        item.style.left =
-            Math.random() * 100 + "vw";
+        item.style.left = Math.random() * 100 + "vw";
 
-        item.style.fontSize =
-            (25 + Math.random() * 35) + "px";
+        item.style.fontSize = (25 + Math.random() * 35) + "px";
 
-        item.style.animationDuration =
-            (4 + Math.random() * 5) + "s";
+        item.style.animationDuration = (4 + Math.random() * 5) + "s";
 
-        if (item.innerHTML === "18") {
+        if (item.textContent === "18") {
             item.style.fontWeight = "bold";
             item.style.textShadow = "0 0 15px white";
         }
@@ -343,6 +348,14 @@ function startFalling() {
         }, 10000);
 
     }, 180);
+
+    // Optional: stop creating new items after 20s to reduce CPU usage
+    setTimeout(() => {
+        if (fallingInterval) {
+            clearInterval(fallingInterval);
+            fallingInterval = null;
+        }
+    }, 20000);
 
 }
 
