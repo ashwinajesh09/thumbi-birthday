@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Happy Birthday Thumbi Machan</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    overflow-x: hidden;
+    background: linear-gradient(120deg, #ff6b81, #7b5cff, #00c6d7);
+    color: white;
+}
+
+/* ---------- OPENING PAGE ---------- */
+
+#opening {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.open-box {
+    position: relative;
+    z-index: 10;
+}
+
+.open-box h1 {
+    font-size: 55px;
+    margin-bottom: 30px;
+    text-shadow: 0 0 15px white;
+    animation: glow 2s infinite alternate;
+}
+
+.open-button {
+    border: none;
+    padding: 18px 40px;
+    border-radius: 40px;
+    background: white;
+    color: #6757e8;
+    font-size: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+}
+
+.open-button:hover {
+    transform: scale(1.08);
+}
+
+/* ---------- BIRTHDAY PAGE ---------- */
+
+#birthday {
+    display: none;
+    min-height: 100vh;
+    text-align: center;
+    padding: 70px 20px 80px;
+    position: relative;
+    overflow: hidden;
+}
+
+.birthday-title {
+    font-size: 55px;
+    font-weight: bold;
+    line-height: 1.2;
+    text-shadow: 0 0 20px white;
+    animation: titleAppear 1.5s ease;
+}
+
+.subtitle {
+    font-size: 25px;
+    margin: 25px 0 35px;
+}
+
+/* ---------- PHOTOS ---------- */
+
+.gallery {
+    max-width: 950px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    position: relative;
+    z-index: 5;
+}
+
+.photo {
+    background: rgba(255,255,255,0.18);
+    padding: 12px;
+    border-radius: 22px;
+    backdrop-filter: blur(5px);
+    transition: 0.4s;
+    animation: photoAppear 1s ease;
+}
+
+.photo:hover {
+    transform: scale(1.05) rotate(1deg);
+}
+
+.photo img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 15px;
+}
+
+/* ---------- FALLING EMOJIS ---------- */
+
+.falling {
+    position: fixed;
+    top: -80px;
+    pointer-events: none;
+    z-index: 20;
+    animation: fall linear forwards;
+}
+
+@keyframes fall {
+    0% {
+        transform: translateY(-80px) rotate(0deg);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(110vh) rotate(360deg);
+        opacity: 0.9;
+    }
+}
+
+@keyframes glow {
+    from {
+        text-shadow: 0 0 10px white;
+    }
+
+    to {
+        text-shadow: 0 0 30px white;
+    }
+}
+
+@keyframes titleAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes photoAppear {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.8);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ---------- MOBILE ---------- */
+
+@media (max-width: 700px) {
+
+    .open-box h1 {
+        font-size: 35px;
+    }
+
+    .birthday-title {
+        font-size: 35px;
+    }
+
+    .subtitle {
+        font-size: 19px;
+    }
+
+    .gallery {
+        grid-template-columns: 1fr;
+    }
+
+    .photo img {
+        height: 260px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- OPENING SCREEN -->
+
+<section id="opening">
+
+    <div class="open-box">
+
+        <h1>Welcome, Thumbi! 🥳</h1>
+
+        <button class="open-button" onclick="openBirthday()">
+            Open chey Thumbi Kuttaaa ❤️
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- BIRTHDAY SCREEN -->
+
+<section id="birthday">
+
+    <h1 class="birthday-title">
+        🎉 HAPPY BIRTHDAY 🎉<br>
+        THUMBIIII MACHANEEEEEEEE 🥳
+    </h1>
+
+    <div class="subtitle">
+        ❤️ Wishing you happiness, success and unlimited smiles ❤️
+    </div>
+
+
+    <!-- FIVE PHOTOS -->
+
+    <div class="gallery">
+
+        <div class="photo">
+            <img src="photo1.jpg" alt="Memory 1">
+        </div>
+
+        <div class="photo">
+            <img src="photo2.jpg" alt="Memory 2">
+        </div>
+
+        <div class="photo">
+            <img src="photo3.jpg" alt="Memory 3">
+        </div>
+
+        <div class="photo">
+            <img src="photo4.jpg" alt="Memory 4">
+        </div>
+
+        <div class="photo">
+            <img src="photo5.jpg" alt="Memory 5">
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- SONG -->
+
+<audio id="birthdaySong" loop>
+    <source src="song.mp3" type="audio/mpeg">
+</audio>
+
+
+<script>
+
+function openBirthday() {
+
+    /* Hide opening page */
+    document.getElementById("opening").style.display = "none";
+
+    /* Show birthday page */
+    document.getElementById("birthday").style.display = "block";
+
+    /* Start song */
+    const song = document.getElementById("birthdaySong");
+
+    song.play().catch(function(error) {
+        console.log("Audio could not start:", error);
+    });
+
+    /* Start falling emojis */
+    startFalling();
+
+}
+
+
+/* ---------- FALLING EMOJIS + 18 ---------- */
+
+function startFalling() {
+
+    const things = [
+        "🎉",
+        "🎊",
+        "🎂",
+        "🎈",
+        "🎁",
+        "🥳",
+        "❤️",
+        "✨",
+        "🍰",
+        "💖",
+        "⭐",
+        "18",
+        "18",
+        "18"
+    ];
+
+    setInterval(function() {
+
+        const item = document.createElement("div");
+
+        item.classList.add("falling");
+
+        item.innerHTML =
+            things[Math.floor(Math.random() * things.length)];
+
+        item.style.left =
+            Math.random() * 100 + "vw";
+
+        item.style.fontSize =
+            (25 + Math.random() * 35) + "px";
+
+        item.style.animationDuration =
+            (4 + Math.random() * 5) + "s";
+
+        if (item.innerHTML === "18") {
+            item.style.fontWeight = "bold";
+            item.style.textShadow = "0 0 15px white";
+        }
+
+        document.body.appendChild(item);
+
+        setTimeout(function() {
+            item.remove();
+        }, 10000);
+
+    }, 180);
+
+}
+
+</script>
+
+</body>
+</html>
