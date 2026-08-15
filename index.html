@@ -236,23 +236,23 @@ body {
     <div class="gallery">
 
         <div class="photo">
-            <img src="photo1.jpg" alt="Memory 1">
+            <img src="screenshot1.png" alt="Memory 1" onerror="this.style.opacity=0.3; this.alt='Image not found';">
         </div>
 
         <div class="photo">
-            <img src="photo2.jpg" alt="Memory 2">
+            <img src="screenshot2.png" alt="Memory 2" onerror="this.style.opacity=0.3; this.alt='Image not found';">
         </div>
 
         <div class="photo">
-            <img src="photo3.jpg" alt="Memory 3">
+            <img src="screenshot3.png" alt="Memory 3" onerror="this.style.opacity=0.3; this.alt='Image not found';">
         </div>
 
         <div class="photo">
-            <img src="photo4.jpg" alt="Memory 4">
+            <img src="screenshot4.png" alt="Memory 4" onerror="this.style.opacity=0.3; this.alt='Image not found';">
         </div>
 
         <div class="photo">
-            <img src="photo5.jpg" alt="Memory 5">
+            <img src="screenshot5.png" alt="Memory 5" onerror="this.style.opacity=0.3; this.alt='Image not found';">
         </div>
 
     </div>
@@ -262,8 +262,9 @@ body {
 
 <!-- SONG -->
 
-<audio id="birthdaySong" loop>
+<audio id="birthdaySong" loop controls preload="auto">
     <source src="song.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
 </audio>
 
 
@@ -282,6 +283,7 @@ function openBirthday() {
 
     song.play().catch(function(error) {
         console.log("Audio could not start:", error);
+        // If autoplay is blocked, controls are available for manual play.
     });
 
     /* Start falling emojis */
