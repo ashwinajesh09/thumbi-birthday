@@ -123,6 +123,7 @@ body {
     pointer-events: none;
     z-index: 20;
     animation: fall linear forwards;
+    will-change: transform, opacity;
 }
 
 @keyframes fall {
@@ -171,6 +172,12 @@ body {
     }
 }
 
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .falling { display: none !important; }
+    .open-box h1, .birthday-title, .photo { animation: none !important; }
+}
+
 /* ---------- MOBILE ---------- */
 
 @media (max-width: 700px) {
@@ -208,7 +215,7 @@ body {
 
         <h1>Welcome, Thumbi! 🥳</h1>
 
-        <button class="open-button" onclick="openBirthday()" aria-label="Open birthday page">
+        <button class="open-button" id="openButton" onclick="openBirthday()" aria-label="Open birthday page">
             Open chey Thumbi Kuttaaa ❤️
         </button>
 
@@ -233,74 +240,110 @@ body {
 
     <!-- FIVE PHOTOS -->
 
-    <div class="gallery">
+    <div class="gallery" aria-live="polite">
 
         <div class="photo">
-            <img src="screenshot1.png" alt="Memory 1" loading="lazy" onerror="this.style.opacity=0.3; this.alt='Image not found';">
+            <img src="screenshot1.png" alt="Screenshot: Thumbi and friends smiling" loading="lazy" onerror="this.style.opacity=0.3; this.alt='Image not found';">
         </div>
 
         <div class="photo">
-            <img src="screenshot2.png" alt="Memory 2" loading="lazy" onerror="this.style.opacity=0.3; this.alt='Image not found';">
+            <img src="screenshot2.png" alt="Screenshot: Thumbi birthday memory" loading="lazy" onerror="this.style.opacity=0.3; this.alt='Image not found';">
         </div>
 
         <div class="photo">
-            <img src="screenshot3.png" alt="Memory 3" loading="lazy" onerror="this.style.opacity=0.3; this.alt='Image not found';">
+            <img src="screenshot3.png" alt="Screenshot: group photo memory" loading="lazy" onerror="this.style.opacity=0.3; this.alt='Image not found';">
         </div>
 
         <div class="photo">
-            <img src="screenshot4.png" alt="Memory 4" loading="lazy" onerror="this.style.opacity=0.3; this.alt='Image not found';">
+            <img src="screenshot4.png" alt="Screenshot: cake and celebration" loading="lazy" onerror="this.style.opacity=0.3; this.alt='Image not found';">
         </div>
 
         <div class="photo">
-            <img src="screenshot5.png" alt="Memory 5" loading="lazy" onerror="this.style.opacity=0.3; this.alt='Image not found';">
+            <img src="screenshot5.png" alt="Screenshot: another happy memory" loading="lazy" onerror="this.style.opacity=0.3; this.alt='Image not found';">
         </div>
 
     </div>
 
     <!-- SONG (moved inside birthday section so it won't preload before open) -->
-    <audio id="birthdaySong" loop controls preload="none">
-        <source src="song.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
+    <div style="margin-top: 24px; display: flex; justify-content: center; gap: 12px; align-items: center;">
+      <audio id="birthdaySong" loop preload="none" aria-label="Birthday song">
+          <source src="song.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+      </audio>
+
+      <button id="audioToggle" aria-pressed="false" aria-controls="birthdaySong">Play Music</button>
+    </div>
 
 </section>
 
 
 <script>
+// Small, focused improvements to make the page robust and accessible.
 
-let fallingInterval = null;
+const openButton = document.getElementById('openButton');
+const audioToggle = document.getElementById('audioToggle');
+const song = document.getElementById('birthdaySong');
+
+// Respect prefers-reduced-motion
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// FALLING animation using requestAnimationFrame for efficiency and proper cleanup
+let fallingRunning = false;
+let lastSpawn = 0;
+const spawnInterval = 180; // ms between spawns
+const maxRunMs = 20000; // total spawn duration
+let spawnStopTimeout = null;
 
 function openBirthday() {
 
-    /* Hide opening page */
+    // Disable the open button immediately to avoid duplicate clicks
+    openButton.disabled = true;
+
+    // Hide opening page
     document.getElementById("opening").style.display = "none";
 
-    /* Show birthday page */
+    // Show birthday page
     document.getElementById("birthday").style.display = "block";
 
-    /* Start song */
-    const song = document.getElementById("birthdaySong");
-
+    // Try to start song (click is a user gesture in most browsers)
     if (song) {
-        // Try to start; many browsers block autoplay so play() may reject.
-        song.play().catch(function(error) {
-            console.log("Audio could not start:", error);
-            // Controls allow manual play.
+        song.play().then(() => {
+            // update toggle state
+            audioToggle.textContent = 'Pause Music';
+            audioToggle.setAttribute('aria-pressed', 'true');
+        }).catch((err) => {
+            // Autoplay blocked — leave controls to the user
+            audioToggle.textContent = 'Play Music';
+            audioToggle.setAttribute('aria-pressed', 'false');
+            console.log('Audio could not autoplay:', err);
         });
-    } else {
-        console.log('Audio element not found');
     }
 
-    /* Start falling emojis */
-    startFalling();
-
+    // Start falling visuals unless reduced-motion is requested
+    if (!prefersReducedMotion) startFalling();
 }
 
+// Audio toggle button behavior
+if (audioToggle) {
+    audioToggle.addEventListener('click', function() {
+        if (!song) return;
+        if (song.paused) {
+            song.play().then(() => {
+                audioToggle.textContent = 'Pause Music';
+                audioToggle.setAttribute('aria-pressed', 'true');
+            }).catch((e) => {
+                console.log('Play failed:', e);
+            });
+        } else {
+            song.pause();
+            audioToggle.textContent = 'Play Music';
+            audioToggle.setAttribute('aria-pressed', 'false');
+        }
+    });
+}
 
-/* ---------- FALLING EMOJIS + 18 ---------- */
-
-function startFalling() {
-
+// Create one falling item and remove it on animationend to avoid lingering DOM nodes
+function spawnItem() {
     const things = [
         "🎉",
         "🎊",
@@ -318,46 +361,79 @@ function startFalling() {
         "18"
     ];
 
-    // Avoid multiple intervals running
-    if (fallingInterval) return;
+    const item = document.createElement('div');
+    item.className = 'falling';
+    item.textContent = things[Math.floor(Math.random() * things.length)];
 
-    fallingInterval = setInterval(function() {
+    // Randomize horizontal placement but clamp within viewport
+    const left = Math.max(2, Math.min(98, Math.random() * 100));
+    item.style.left = left + 'vw';
 
-        const item = document.createElement("div");
+    // Random font size and duration
+    const fontSize = (22 + Math.random() * 36);
+    item.style.fontSize = fontSize + 'px';
 
-        item.classList.add("falling");
+    const duration = (4 + Math.random() * 5);
+    item.style.animationDuration = duration + 's';
 
-        // Use textContent for safety
-        item.textContent = things[Math.floor(Math.random() * things.length)];
+    if (item.textContent === '18') {
+        item.style.fontWeight = '700';
+        item.style.textShadow = '0 0 15px white';
+    }
 
-        item.style.left = Math.random() * 100 + "vw";
+    // When animation ends, remove the node
+    const removeFn = () => {
+        item.removeEventListener('animationend', removeFn);
+        if (item.parentNode) item.parentNode.removeChild(item);
+    };
+    item.addEventListener('animationend', removeFn);
 
-        item.style.fontSize = (25 + Math.random() * 35) + "px";
-
-        item.style.animationDuration = (4 + Math.random() * 5) + "s";
-
-        if (item.textContent === "18") {
-            item.style.fontWeight = "bold";
-            item.style.textShadow = "0 0 15px white";
-        }
-
-        document.body.appendChild(item);
-
-        setTimeout(function() {
-            item.remove();
-        }, 10000);
-
-    }, 180);
-
-    // Optional: stop creating new items after 20s to reduce CPU usage
-    setTimeout(() => {
-        if (fallingInterval) {
-            clearInterval(fallingInterval);
-            fallingInterval = null;
-        }
-    }, 20000);
-
+    document.body.appendChild(item);
 }
+
+function startFalling() {
+    if (fallingRunning) return; // prevent duplicates
+    fallingRunning = true;
+    lastSpawn = performance.now();
+
+    const startTime = performance.now();
+
+    function loop(now) {
+        if (!fallingRunning) return;
+        const elapsed = now - lastSpawn;
+        if (elapsed >= spawnInterval) {
+            spawnItem();
+            lastSpawn = now;
+        }
+        // Stop after maxRunMs
+        if (now - startTime >= maxRunMs) {
+            stopFalling();
+            return;
+        }
+        requestAnimationFrame(loop);
+    }
+
+    requestAnimationFrame(loop);
+
+    // Safety: ensure we clear the running flag after maxRunMs
+    if (spawnStopTimeout) clearTimeout(spawnStopTimeout);
+    spawnStopTimeout = setTimeout(stopFalling, maxRunMs + 100);
+}
+
+function stopFalling() {
+    fallingRunning = false;
+    if (spawnStopTimeout) {
+        clearTimeout(spawnStopTimeout);
+        spawnStopTimeout = null;
+    }
+}
+
+// Accessible keyboard: trigger openBirthday on Enter when button focused
+openButton.addEventListener('keyup', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+        openBirthday();
+    }
+});
 
 </script>
 
